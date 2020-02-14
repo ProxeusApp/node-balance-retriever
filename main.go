@@ -3,11 +3,12 @@ package main
 import (
 	"encoding/json"
 	"errors"
-	"github.com/ProxeusApp/proxeus-core/externalnode"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
+
+	"github.com/ProxeusApp/proxeus-core/externalnode"
 
 	"github.com/ProxeusApp/node-balance-retriever/service"
 	"github.com/ProxeusApp/proxeus-core/main/handlers/blockchain/ethglue"
