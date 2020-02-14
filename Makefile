@@ -1,7 +1,7 @@
 .PHONY: fmt test build package tag run push clean
 
-BIN_NAME=node-balance-retriever
 IMAGE_NAME=node-balance-retriever
+BIN_NAME=node
 
 default: fmt test build package tag run
 
@@ -23,7 +23,7 @@ tag: package
 	docker tag $(IMAGE_NAME):local $(IMAGE_NAME):latest
 
 run: tag
-	docker run --name ${BIN_NAME} --rm $(IMAGE_NAME):latest
+	docker run --name ${IMAGE_NAME} --rm $(IMAGE_NAME):latest
 
 push: tag
 	docker push $(IMAGE_NAME):latest
