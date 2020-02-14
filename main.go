@@ -1,37 +1,31 @@
 package main
 
 import (
-	"bytes"
 	"encoding/json"
 	"errors"
+	"github.com/ProxeusApp/proxeus-core/externalnode"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
-	"time"
 
 	"github.com/ProxeusApp/node-balance-retriever/service"
 	"github.com/ProxeusApp/proxeus-core/main/handlers/blockchain/ethglue"
-	"github.com/ProxeusApp/proxeus-core/sys/model"
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
 )
 
 const (
-	jwtSecret  = "my secret 2"
-	proxeusUrl = "http://127.0.0.1:1323"
-	serviceUrl = "127.0.0.1:8012"
-	authKey    = "auth"
+	serviceName = "balanceRetriever"
+	jwtSecret   = "my secret 2"
+	serviceUrl  = "127.0.0.1:8012"
+	authKey     = "auth"
 )
 
 var (
 	ethereumBalanceService service.EthereumBalanceService
 	errCastingEthAddress   = errors.New("[taxreporter][next] casting error ethAddress")
 )
-
-func health(c echo.Context) error {
-	return c.String(http.StatusOK, "I'm ok")
-}
 
 func main() {
 	ethClientUrl := os.Getenv("PROXEUS_ETH_CLIENT_URL")
@@ -72,7 +66,7 @@ func main() {
 	e := echo.New()
 	e.HideBanner = true
 	e.Use(middleware.Recover())
-	e.GET("/health", health)
+	e.GET("/health", externalnode.Health)
 	{
 		g := e.Group("/node/:id")
 		conf := middleware.DefaultJWTConfig
@@ -81,20 +75,16 @@ func main() {
 		g.Use(middleware.JWTWithConfig(conf))
 
 		g.POST("/next", next)
-		g.GET("/config", nop)
-		g.POST("/config", nop)
-		g.POST("/remove", nop)
-		g.POST("/close", nop)
+		g.GET("/config", externalnode.Nop)
+		g.POST("/config", externalnode.Nop)
+		g.POST("/remove", externalnode.Nop)
+		g.POST("/close", externalnode.Nop)
 	}
-	register()
+	externalnode.Register(serviceName, serviceUrl, jwtSecret, "Converts currencies")
 	err = e.Start(serviceUrl)
 	if err != nil {
 		log.Println("[taxreporter][run] err: ", err.Error())
 	}
-}
-
-func nop(_ echo.Context) error {
-	return nil
 }
 
 func next(c echo.Context) error {
@@ -124,29 +114,4 @@ func next(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, response)
-}
-
-func register() {
-	client := http.Client{Timeout: 5 * time.Second}
-	for {
-		n := model.ExternalNode{
-			ID:     "balanceRetriever",
-			Name:   "balanceRetriever",
-			Detail: "Returns balances at a given date for ETH and erc20 tokens",
-			Url:    "http://" + serviceUrl,
-			Secret: jwtSecret,
-		}
-		buf, err := json.Marshal(n)
-		if err != nil {
-			panic(err.Error())
-		}
-		r, err := client.Post(proxeusUrl+"/api/admin/external/register",
-			"application/json", bytes.NewBuffer(buf))
-		if err == nil && r.StatusCode == http.StatusOK {
-			log.Print("[nodeservice] ", n.Name, " registered")
-			return
-		}
-		log.Print("[nodeservice] error registering ", n.Name, " err ", err)
-		time.Sleep(5 * time.Second)
-	}
 }
