@@ -9,3 +9,5 @@ require (
 	github.com/labstack/echo v3.3.10+incompatible
 	github.com/stretchr/testify v1.4.0
 )
+
+replace github.com/ProxeusApp/proxeus-core/externalnode => ../proxeus-core/externalnode
