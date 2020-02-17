@@ -51,9 +51,52 @@ func main() {
 		mkrAddress = "0x710129558e8fff5cab9c0c9c43b99d79ed864b99" //ropsten
 	}
 
+	batAddress := os.Getenv("PROXEUS_BAT_ADDRESS")
+	if len(batAddress) == 0 {
+		//batAddress = "" //mainnet
+		batAddress = "0x60b10c134088ebd63f80766874e2cade05fc987b" //ropsten
+	}
+	usdcAddress := os.Getenv("PROXEUS_USDC_ADDRESS")
+	if len(usdcAddress) == 0 {
+		//usdcAddress = "" //mainnet
+		usdcAddress = "0xfe724a829fdf12f7012365db98730eee33742ea2" //ropsten
+	}
+	repAddress := os.Getenv("PROXEUS_REP_ADDRESS")
+	if len(repAddress) == 0 {
+		//repAddress = "" //mainnet
+		repAddress = "0xc853ba17650d32daba343294998ea4e33e7a48b9" //ropsten
+	}
+	omgAddress := os.Getenv("PROXEUS_OMG_ADDRESS")
+	if len(omgAddress) == 0 {
+		//omgAddress = "" //mainnet
+		omgAddress = "0x9820b36a37af9389a23acfb7988c0ee6837763b6" //ropsten
+	}
+	linkAddress := os.Getenv("PROXEUS_LINK_ADDRESS")
+	if len(linkAddress) == 0 {
+		//linkAddress = "" //mainnet
+		linkAddress = "0x20fe562d797a42dcb3399062ae9546cd06f63280" //ropsten
+	}
+	zrxAddress := os.Getenv("PROXEUS_ZRX_ADDRESS")
+	if len(zrxAddress) == 0 {
+		//zrxAddress = "" //mainnet
+		zrxAddress = "0xa8e9fa8f91e5ae138c74648c9c304f1c75003a8d" //ropsten
+	}
+	enjAddress := os.Getenv("PROXEUS_ENJ_ADDRESS")
+	if len(enjAddress) == 0 {
+		//enjAddress = "" //mainnet
+		enjAddress = "0x81ec0ed50441fc3d1d63763f27b24081e5b516d5" //ropsten
+	}
+
 	tokensMap := map[string]string{
-		xesAddress: "XES",
-		mkrAddress: "MKR",
+		xesAddress:  "XES",
+		mkrAddress:  "MKR",
+		batAddress:  "BAT",
+		usdcAddress: "USDC",
+		repAddress:  "REP",
+		omgAddress:  "OMG",
+		linkAddress: "LINK",
+		zrxAddress:  "ZRX",
+		enjAddress:  "ENJ",
 	}
 
 	balanceService, err := service.NewEthClientBalanceService(ethClient, tokensMap)
