@@ -13,7 +13,7 @@ test: fmt
 	go test ./...
 
 build: test
-	CGO_ENABLED=0 go build -o artifacts/${BIN_NAME} .
+	GOOS=linux CGO_ENABLED=0 go build -o artifacts/${BIN_NAME} .
 	chmod +x artifacts/${BIN_NAME}
 
 package: build

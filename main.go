@@ -3,12 +3,12 @@ package main
 import (
 	"encoding/json"
 	"errors"
-	"github.com/ethereum/go-ethereum/common"
-	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
+
+	"github.com/ethereum/go-ethereum/common"
 
 	"github.com/ProxeusApp/proxeus-core/externalnode"
 
@@ -58,7 +58,7 @@ func main() {
 
 	ethClient, err := ethglue.Dial(ethClientUrl)
 	if err != nil {
-		log.Println("[taxreporter][run] err: ", err.Error())
+		log.Println("[taxreporter][run] ethglue.Dial err: ", err.Error())
 		return
 	}
 
@@ -93,21 +93,6 @@ func main() {
 		//omgAddress = "" //mainnet
 		omgAddress = "0x9820B36a37Af9389a23ACfb7988C0ee6837763b6" //ropsten
 	}
-	linkAddress := os.Getenv("PROXEUS_LINK_ADDRESS")
-	if len(linkAddress) == 0 {
-		//linkAddress = "" //mainnet
-		linkAddress = "0x20fE562d797A42Dcb3399062AE9546cd06f63280" //ropsten
-	}
-	zrxAddress := os.Getenv("PROXEUS_ZRX_ADDRESS")
-	if len(zrxAddress) == 0 {
-		//zrxAddress = "" //mainnet
-		zrxAddress = "0xA8E9Fa8f91e5Ae138C74648c9C304F1C75003A8D" //ropsten
-	}
-	enjAddress := os.Getenv("PROXEUS_ENJ_ADDRESS")
-	if len(enjAddress) == 0 {
-		//enjAddress = "" //mainnet
-		enjAddress = "0x81Ec0eD50441fc3d1d63763F27b24081E5b516d5" //ropsten
-	}
 
 	//make sure to add new contract addresses with checksum (EIP-55)
 	tokensMap := map[string]string{
@@ -117,14 +102,11 @@ func main() {
 		common.HexToAddress(usdcAddress).String(): "USDC",
 		common.HexToAddress(repAddress).String():  "REP",
 		common.HexToAddress(omgAddress).String():  "OMG",
-		common.HexToAddress(linkAddress).String(): "LINK",
-		common.HexToAddress(zrxAddress).String():  "ZRX",
-		common.HexToAddress(enjAddress).String():  "ENJ",
 	}
 
 	balanceService, err := service.NewEthClientBalanceService(ethClient, tokensMap)
 	if err != nil {
-		log.Println("[taxreporter][run] err: ", err.Error())
+		log.Println("[taxreporter][run] NewEthClientBalanceService err: ", err.Error())
 		return
 	}
 
@@ -150,7 +132,7 @@ func main() {
 	externalnode.Register(proxeusUrl, serviceName, serviceUrl, jwtSecret, "Retrieves token balances of an address")
 	err = e.Start(serviceUrl)
 	if err != nil {
-		log.Println("[taxreporter][run] err: ", err.Error())
+		log.Println("[taxreporter][run] Start err: ", err.Error())
 	}
 }
 
