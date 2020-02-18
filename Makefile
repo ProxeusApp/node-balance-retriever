@@ -1,7 +1,7 @@
 .PHONY: fmt test build package tag run push clean
 
-IMAGE_NAME=node-balance-retriever
 BIN_NAME=node
+IMAGE_NAME=proxeus/node-balance-retriever
 
 default: fmt test build package tag run
 
@@ -13,7 +13,7 @@ test: fmt
 	go test ./...
 
 build: test
-	GOOS=linux GOARCH=arm go build -o artifacts/${BIN_NAME} .
+	CGO_ENABLED=0 go build -o artifacts/${BIN_NAME} .
 	chmod +x artifacts/${BIN_NAME}
 
 package: build
@@ -23,7 +23,7 @@ tag: package
 	docker tag $(IMAGE_NAME):local $(IMAGE_NAME):latest
 
 run: tag
-	docker run --name ${IMAGE_NAME} --rm $(IMAGE_NAME):latest
+	docker run --network="host" --name ${BIN_NAME} --rm $(IMAGE_NAME):latest
 
 push: tag
 	docker push $(IMAGE_NAME):latest

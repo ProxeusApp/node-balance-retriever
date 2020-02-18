@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"github.com/ethereum/go-ethereum/common"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -18,10 +19,11 @@ import (
 )
 
 const (
-	serviceName = "balanceRetriever"
-	jwtSecret   = "my secret 2"
-	serviceUrl  = "127.0.0.1:8012"
-	authKey     = "auth"
+	serviceName       = "balanceRetriever"
+	defaultServiceUrl = "127.0.0.1:8012"
+	jwtSecret         = "my secret 2"
+	defaultProxeusUrl = "http://127.0.0.1:1323"
+	defaultAuthkey    = "auth"
 )
 
 var (
@@ -30,6 +32,25 @@ var (
 )
 
 func main() {
+	proxeusUrl := os.Getenv("PROXEUS_INSTANCE_URL")
+	if len(proxeusUrl) == 0 {
+		proxeusUrl = defaultProxeusUrl
+	}
+	serviceUrl := os.Getenv("SERVICE_URL")
+	if len(serviceUrl) == 0 {
+		serviceUrl = defaultServiceUrl
+	}
+	authKey := os.Getenv("AUTH_KEY")
+	if len(authKey) == 0 {
+		authKey = defaultAuthkey
+	}
+	fmt.Println()
+	fmt.Println("#######################################################")
+	fmt.Println("# STARTING NODE - " + serviceName)
+	fmt.Println("# listing on " + serviceUrl)
+	fmt.Println("# connecting to " + proxeusUrl)
+	fmt.Println("#######################################################")
+	fmt.Println()
 	ethClientUrl := os.Getenv("PROXEUS_ETH_CLIENT_URL")
 	if len(ethClientUrl) == 0 {
 		ethClientUrl = "https://ropsten.infura.io/v3/4876e0df8d31475799c8239ba2538c4c"
@@ -126,7 +147,7 @@ func main() {
 		g.POST("/remove", externalnode.Nop)
 		g.POST("/close", externalnode.Nop)
 	}
-	externalnode.Register(serviceName, serviceUrl, jwtSecret, "Converts currencies")
+	externalnode.Register(proxeusUrl, serviceName, serviceUrl, jwtSecret, "Retrieves token balances of an address")
 	err = e.Start(serviceUrl)
 	if err != nil {
 		log.Println("[taxreporter][run] err: ", err.Error())

@@ -1,0 +1,22 @@
+---
+version: '3.7'
+
+networks:
+  xes-platform-network:
+    name: xes-platform-network
+
+services:
+  node-balance-retriever:
+    build:
+      .
+    container_name: xes_node-node-balance-retriever
+    networks:
+      - xes-platform-network
+    restart: unless-stopped
+    environment:
+      PROXEUS_INSTANCE_URL: http://xes-platform:1323
+      AUTH_KEY: secret
+      SERVICE_URL: http://node-balance-retriever:1323
+      TZ: Europe/Zurich
+    ports:
+      - "8012:8012"
