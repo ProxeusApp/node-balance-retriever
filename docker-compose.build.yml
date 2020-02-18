@@ -14,9 +14,10 @@ services:
       - xes-platform-network
     restart: unless-stopped
     environment:
-      PROXEUS_INSTANCE_URL: http://xes-platform:1323
-      AUTH_KEY: secret
-      SERVICE_URL: http://node-balance-retriever:1323
+      PROXEUS_INSTANCE_URL: http://172.17.0.1:1323
+      SERVICE_SECRET: secret
+      SERVICE_PORT: 8012
+      SERVICE_URL: localhost
       TZ: Europe/Zurich
     ports:
       - "8012:8012"

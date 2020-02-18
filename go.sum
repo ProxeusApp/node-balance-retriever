@@ -18,8 +18,11 @@ github.com/OneOfOne/xxhash v1.2.2/go.mod h1:HSdplMjZKSmBqAxg5vPj2TmRDmfkzw+cTzAE
 github.com/OneOfOne/xxhash v1.2.5/go.mod h1:eZbhyaAYD41SGSSsnmcpxVoRiQ/MPUTjUdIIOT9Um7Q=
 github.com/ProxeusApp/proxeus-core v0.0.0-20200212085143-34fcf188a1ca h1:fpGkIDbZcN2r5Kbm7jWOPl1WD4G6ZYk/nMYhe9XRQgo=
 github.com/ProxeusApp/proxeus-core v0.0.0-20200212085143-34fcf188a1ca/go.mod h1:ZY0O19CjLb5q9xwEk/iXSoMeyQXf3v0mX0PwNKoD1GI=
+github.com/ProxeusApp/proxeus-core v0.0.0-20200218131402-646bf4b611a1 h1:9LMfz/SZbZjTmKB043xyn5r+2IkaO9Xq4NPeAA5xZG8=
 github.com/ProxeusApp/proxeus-core/externalnode v0.0.0-20200213110705-c917ef26f755 h1:TkabFP7fac1xQJN6iWZo8nrZs3whrl9v23M7XRYQxyQ=
 github.com/ProxeusApp/proxeus-core/externalnode v0.0.0-20200213110705-c917ef26f755/go.mod h1:+zG6MGowS3xtvHabKtWyti/uBb668PcjI34LqFqZWm4=
+github.com/ProxeusApp/proxeus-core/externalnode v0.0.0-20200218131402-646bf4b611a1 h1:/k4FJQ89KphOmLtacNWEJ6fZia74DYRCuGg+H6GzXP8=
+github.com/ProxeusApp/proxeus-core/externalnode v0.0.0-20200218131402-646bf4b611a1/go.mod h1:+zG6MGowS3xtvHabKtWyti/uBb668PcjI34LqFqZWm4=
 github.com/Sereal/Sereal v0.0.0-20181211220259-509a78ddbda3 h1:Xu7z47ZiE/J+sKXHZMGxEor/oY2q6dq51fkO0JqdSwY=
 github.com/Sereal/Sereal v0.0.0-20181211220259-509a78ddbda3/go.mod h1:D0JMgToj/WdxCgd30Kc1UcA9E+WdZoJqeVOuYW7iTBM=
 github.com/SparkPost/gosparkpost v0.0.0-20170825125937-4c6d2a3be658/go.mod h1:cyhfMSqkHlBoIxTiOMm1iTK9Xsqwohvp4tViuhO1cG8=
