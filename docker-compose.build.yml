@@ -17,7 +17,7 @@ services:
       PROXEUS_INSTANCE_URL: http://172.17.0.1:1323
       SERVICE_SECRET: secret
       SERVICE_PORT: 8012
-      SERVICE_URL: localhost
+      SERVICE_URL: http://localhost:8012
       TZ: Europe/Zurich
     ports:
       - "8012:8012"
