@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"errors"
+	"github.com/ethereum/go-ethereum/common"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -48,55 +49,56 @@ func main() {
 	mkrAddress := os.Getenv("PROXEUS_MKR_ADDRESS")
 	if len(mkrAddress) == 0 {
 		//mkrAddress = "0x9f8F72aA9304c8B593d555F12eF6589cC3A579A2" //mainnet
-		mkrAddress = "0x710129558e8fff5cab9c0c9c43b99d79ed864b99" //ropsten
+		mkrAddress = "0x710129558E8ffF5caB9c0c9c43b99d79Ed864B99" //ropsten
 	}
 
 	batAddress := os.Getenv("PROXEUS_BAT_ADDRESS")
 	if len(batAddress) == 0 {
 		//batAddress = "" //mainnet
-		batAddress = "0x60b10c134088ebd63f80766874e2cade05fc987b" //ropsten
+		batAddress = "0x60B10C134088ebD63f80766874e2Cade05fc987B" //ropsten
 	}
 	usdcAddress := os.Getenv("PROXEUS_USDC_ADDRESS")
 	if len(usdcAddress) == 0 {
 		//usdcAddress = "" //mainnet
-		usdcAddress = "0xfe724a829fdf12f7012365db98730eee33742ea2" //ropsten
+		usdcAddress = "0xFE724a829fdF12F7012365dB98730EEe33742ea2" //ropsten
 	}
 	repAddress := os.Getenv("PROXEUS_REP_ADDRESS")
 	if len(repAddress) == 0 {
 		//repAddress = "" //mainnet
-		repAddress = "0xc853ba17650d32daba343294998ea4e33e7a48b9" //ropsten
+		repAddress = "0xc853bA17650D32DAba343294998eA4E33e7a48B9" //ropsten
 	}
 	omgAddress := os.Getenv("PROXEUS_OMG_ADDRESS")
 	if len(omgAddress) == 0 {
 		//omgAddress = "" //mainnet
-		omgAddress = "0x9820b36a37af9389a23acfb7988c0ee6837763b6" //ropsten
+		omgAddress = "0x9820B36a37Af9389a23ACfb7988C0ee6837763b6" //ropsten
 	}
 	linkAddress := os.Getenv("PROXEUS_LINK_ADDRESS")
 	if len(linkAddress) == 0 {
 		//linkAddress = "" //mainnet
-		linkAddress = "0x20fe562d797a42dcb3399062ae9546cd06f63280" //ropsten
+		linkAddress = "0x20fE562d797A42Dcb3399062AE9546cd06f63280" //ropsten
 	}
 	zrxAddress := os.Getenv("PROXEUS_ZRX_ADDRESS")
 	if len(zrxAddress) == 0 {
 		//zrxAddress = "" //mainnet
-		zrxAddress = "0xa8e9fa8f91e5ae138c74648c9c304f1c75003a8d" //ropsten
+		zrxAddress = "0xA8E9Fa8f91e5Ae138C74648c9C304F1C75003A8D" //ropsten
 	}
 	enjAddress := os.Getenv("PROXEUS_ENJ_ADDRESS")
 	if len(enjAddress) == 0 {
 		//enjAddress = "" //mainnet
-		enjAddress = "0x81ec0ed50441fc3d1d63763f27b24081e5b516d5" //ropsten
+		enjAddress = "0x81Ec0eD50441fc3d1d63763F27b24081E5b516d5" //ropsten
 	}
 
+	//make sure to add new contract addresses with checksum (EIP-55)
 	tokensMap := map[string]string{
-		xesAddress:  "XES",
-		mkrAddress:  "MKR",
-		batAddress:  "BAT",
-		usdcAddress: "USDC",
-		repAddress:  "REP",
-		omgAddress:  "OMG",
-		linkAddress: "LINK",
-		zrxAddress:  "ZRX",
-		enjAddress:  "ENJ",
+		common.HexToAddress(xesAddress).String():  "XES",
+		common.HexToAddress(mkrAddress).String():  "MKR",
+		common.HexToAddress(batAddress).String():  "BAT",
+		common.HexToAddress(usdcAddress).String(): "USDC",
+		common.HexToAddress(repAddress).String():  "REP",
+		common.HexToAddress(omgAddress).String():  "OMG",
+		common.HexToAddress(linkAddress).String(): "LINK",
+		common.HexToAddress(zrxAddress).String():  "ZRX",
+		common.HexToAddress(enjAddress).String():  "ENJ",
 	}
 
 	balanceService, err := service.NewEthClientBalanceService(ethClient, tokensMap)
