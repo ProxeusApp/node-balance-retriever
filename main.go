@@ -62,12 +62,18 @@ func main() {
 	fmt.Println("# connecting to " + proxeusUrl)
 	fmt.Println("#######################################################")
 	fmt.Println()
+
 	ethClientUrl := os.Getenv("PROXEUS_ETH_CLIENT_URL")
 	if len(ethClientUrl) == 0 {
-		panic("missing required env variable PROXEUS_ETH_CLIENT_URL (e.g. 'https://ropsten.infura.io/v3/abc...' :)")
+		ethClientUrl = "https://ropsten.infura.io/v3/"
 	}
 
-	ethClient, err := ethglue.Dial(ethClientUrl)
+	infuraApiKey := os.Getenv("PROXEUS_INFURA_API_KEY")
+	if len(infuraApiKey) == 0 {
+		panic("missing required env variable PROXEUS_INFURA_API_KEY")
+	}
+
+	ethClient, err := ethglue.Dial(ethClientUrl + infuraApiKey)
 	if err != nil {
 		panic(fmt.Sprintf("[taxreporter][run] ethglue.Dial err: %s", err.Error()))
 	}
