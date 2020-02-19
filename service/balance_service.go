@@ -116,7 +116,7 @@ func (me *ethClientBalanceService) extractERC20Balances(ctx context.Context, toB
 	defer close(errChan)
 
 	// Split into block chunks as we don't want (can't) to process the whole blockchain at once
-	startBlocks, endBlocks, err := me.getBlockChunks(big.NewInt(int64(0)), toBlockNumber, 3000)
+	startBlocks, endBlocks, err := me.getBlockChunks(big.NewInt(int64(0)), toBlockNumber, 600)
 	if err != nil {
 		return nil, err
 	}

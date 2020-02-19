@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"math/big"
+	"reflect"
 	"time"
 )
 
@@ -35,16 +36,27 @@ func (me *defaultEthereumBalanceService) GetBalances(ctx context.Context, ethAdd
 		return nil, err
 	}
 
-	for _, v := range []string{"ETH", "XES", "MKR"} {
-		asset, ok := balances.Load(v)
-		if ok {
-			valWei, ok := asset.(*big.Int)
-			if !ok {
-				return nil, fmt.Errorf("[taxreporter][next] casting error: %s", asset)
-			}
-			response[v] = me.convertToDefaultUnit(valWei)
+	balances.Range(func(key, value interface{}) bool {
+		keyString, ok := key.(string)
+		if !ok {
+			err = fmt.Errorf("key expected to be a string, was %v. Value: %v", reflect.TypeOf(key), key)
+			return false
 		}
+
+		valWei, ok := value.(*big.Int)
+		if !ok {
+			err = fmt.Errorf("[taxreporter][next] casting error: %s", value)
+			return false
+		}
+
+		response[keyString] = me.convertToDefaultUnit(valWei)
+		return true
+	})
+
+	if err != nil {
+		return nil, err
 	}
+
 	return response, nil
 }
 
