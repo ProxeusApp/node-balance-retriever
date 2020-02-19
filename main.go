@@ -20,11 +20,13 @@ import (
 )
 
 const (
-	serviceName       = "balanceRetriever"
-	defaultServiceUrl = "127.0.0.1:8012"
-	jwtSecret         = "my secret 2"
-	defaultProxeusUrl = "http://127.0.0.1:1323"
-	defaultAuthkey    = "auth"
+	serviceID          = "node-balance-retriever"
+	defaultServiceName = "Retrieve Token Balances"
+	defaultServiceUrl  = "127.0.0.1"
+	defaultServicePort = "8012"
+	defaultJWTSecret   = "my secret 2"
+	defaultProxeusUrl  = "http://127.0.0.1:1323"
+	defaultAuthkey     = "auth"
 )
 
 var (
@@ -37,13 +39,21 @@ func main() {
 	if len(proxeusUrl) == 0 {
 		proxeusUrl = defaultProxeusUrl
 	}
+	servicePort := os.Getenv("SERVICE_PORT")
+	if len(servicePort) == 0 {
+		servicePort = defaultServicePort
+	}
 	serviceUrl := os.Getenv("SERVICE_URL")
 	if len(serviceUrl) == 0 {
-		serviceUrl = defaultServiceUrl
+		serviceUrl = "http://localhost:" + servicePort
 	}
-	authKey := os.Getenv("AUTH_KEY")
-	if len(authKey) == 0 {
-		authKey = defaultAuthkey
+	jwtsecret := os.Getenv("SERVICE_SECRET")
+	if len(jwtsecret) == 0 {
+		jwtsecret = defaultJWTSecret
+	}
+	serviceName := os.Getenv("SERVICE_NAME")
+	if len(serviceName) == 0 {
+		serviceName = defaultServiceName
 	}
 	fmt.Println()
 	fmt.Println("#######################################################")
@@ -120,8 +130,8 @@ func main() {
 	{
 		g := e.Group("/node/:id")
 		conf := middleware.DefaultJWTConfig
-		conf.SigningKey = []byte(jwtSecret)
-		conf.TokenLookup = "query:" + authKey
+		conf.SigningKey = []byte(jwtsecret)
+		conf.TokenLookup = "query:" + defaultAuthkey
 		g.Use(middleware.JWTWithConfig(conf))
 
 		g.POST("/next", next)
@@ -130,8 +140,8 @@ func main() {
 		g.POST("/remove", externalnode.Nop)
 		g.POST("/close", externalnode.Nop)
 	}
-	externalnode.Register(proxeusUrl, serviceName, serviceUrl, jwtSecret, "Retrieves token balances of an address")
-	err = e.Start(serviceUrl)
+	externalnode.Register(proxeusUrl, serviceName, serviceUrl, jwtsecret, "Retrieves token balances of an address")
+	err = e.Start("0.0.0.0:" + servicePort)
 	if err != nil {
 		log.Println("[taxreporter][run] Start err: ", err.Error())
 	}
