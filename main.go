@@ -83,6 +83,7 @@ func main() {
 		//xesAddress = "0xA017ac5faC5941f95010b12570B812C974469c2C" //mainnet
 		xesAddress = "0x84E0b37e8f5B4B86d5d299b0B0e33686405A3919" //ropsten
 	}
+
 	mkrAddress := os.Getenv("PROXEUS_MKR_ADDRESS")
 	if len(mkrAddress) == 0 {
 		//mkrAddress = "0x9f8F72aA9304c8B593d555F12eF6589cC3A579A2" //mainnet
@@ -94,30 +95,33 @@ func main() {
 		//batAddress = "" //mainnet
 		batAddress = "0x60B10C134088ebD63f80766874e2Cade05fc987B" //ropsten
 	}
-	usdcAddress := os.Getenv("PROXEUS_USDC_ADDRESS")
-	if len(usdcAddress) == 0 {
-		//usdcAddress = "" //mainnet
-		usdcAddress = "0xFE724a829fdF12F7012365dB98730EEe33742ea2" //ropsten
-	}
-	repAddress := os.Getenv("PROXEUS_REP_ADDRESS")
-	if len(repAddress) == 0 {
-		//repAddress = "" //mainnet
-		repAddress = "0xc853bA17650D32DAba343294998eA4E33e7a48B9" //ropsten
-	}
+
 	omgAddress := os.Getenv("PROXEUS_OMG_ADDRESS")
 	if len(omgAddress) == 0 {
 		//omgAddress = "" //mainnet
 		omgAddress = "0x9820B36a37Af9389a23ACfb7988C0ee6837763b6" //ropsten
 	}
 
+	zrxAddress := os.Getenv("PROXEUS_ZRX_ADDRESS")
+	if len(zrxAddress) == 0 {
+		//zrxAddress = "" //mainnet
+		zrxAddress = "0xA8E9Fa8f91e5Ae138C74648c9C304F1C75003A8D" //ropsten
+	}
+
+	enjAddress := os.Getenv("PROXEUS_ENJ_ADDRESS")
+	if len(enjAddress) == 0 {
+		//enjAddress = "" //mainnet
+		enjAddress = "0x81Ec0eD50441fc3d1d63763F27b24081E5b516d5" //ropsten
+	}
+
 	//make sure to add new contract addresses with checksum (EIP-55)
 	tokensMap := map[string]string{
-		common.HexToAddress(xesAddress).String():  "XES",
-		common.HexToAddress(mkrAddress).String():  "MKR",
-		common.HexToAddress(batAddress).String():  "BAT",
-		common.HexToAddress(usdcAddress).String(): "USDC",
-		common.HexToAddress(repAddress).String():  "REP",
-		common.HexToAddress(omgAddress).String():  "OMG",
+		common.HexToAddress(xesAddress).String(): "XES",
+		common.HexToAddress(mkrAddress).String(): "MKR",
+		common.HexToAddress(batAddress).String(): "BAT",
+		common.HexToAddress(omgAddress).String(): "OMG",
+		common.HexToAddress(zrxAddress).String(): "ZRX",
+		common.HexToAddress(enjAddress).String(): "ENJ",
 	}
 
 	balanceService, err := service.NewEthClientBalanceService(ethClient, tokensMap)

@@ -38,7 +38,7 @@ func NewEthClientStub() *ethClientStub {
 func (me ethClientStub) HeaderByNumber(ctx context.Context, number *big.Int) (*types.Header, error) {
 
 	return &types.Header{
-		Number: big.NewInt(1000),
+		Number: big.NewInt(600),
 	}, nil
 }
 
@@ -93,7 +93,7 @@ func (me ethClientStub) FilterLogs(ctx context.Context, q ethereum.FilterQuery) 
 			Address: common.HexToAddress("0xabcdefghiC5941f95010b12570B812C974469c2C"),
 			Topics: []common.Hash{
 				common.BytesToHash(crypto.Keccak256(me.erc20ABI.Methods["transfer"].ID())),
-				common.HexToHash("0xef91ecd0142ae4c5163b2cf060c0563d49188c82"),
+				targetAddress,
 				common.HexToHash("0x043129ab3945D2bB75f3B5DE21487343EFBeffd2"),
 			},
 			Data:        common.BytesToHash(secondTransferValue.Bytes()).Bytes(),
