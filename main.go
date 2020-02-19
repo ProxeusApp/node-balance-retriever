@@ -58,19 +58,18 @@ func main() {
 	fmt.Println()
 	fmt.Println("#######################################################")
 	fmt.Println("# STARTING NODE - " + serviceName)
-	fmt.Println("# listing on " + serviceUrl)
+	fmt.Println("# listening on " + serviceUrl)
 	fmt.Println("# connecting to " + proxeusUrl)
 	fmt.Println("#######################################################")
 	fmt.Println()
 	ethClientUrl := os.Getenv("PROXEUS_ETH_CLIENT_URL")
 	if len(ethClientUrl) == 0 {
-		ethClientUrl = "https://ropsten.infura.io/v3/4876e0df8d31475799c8239ba2538c4c"
+		panic("missing required env variable PROXEUS_ETH_CLIENT_URL (e.g. 'https://ropsten.infura.io/v3/abc...' :)")
 	}
 
 	ethClient, err := ethglue.Dial(ethClientUrl)
 	if err != nil {
-		log.Println("[taxreporter][run] ethglue.Dial err: ", err.Error())
-		return
+		panic(fmt.Sprintf("[taxreporter][run] ethglue.Dial err: %s", err.Error()))
 	}
 
 	xesAddress := os.Getenv("PROXEUS_XES_ADDRESS")
