@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strconv"
 
 	"github.com/ethereum/go-ethereum/common"
 
@@ -20,13 +21,14 @@ import (
 )
 
 const (
-	serviceID          = "node-balance-retriever"
-	defaultServiceName = "Retrieve Token Balances"
-	defaultServiceUrl  = "127.0.0.1"
-	defaultServicePort = "8012"
-	defaultJWTSecret   = "my secret 2"
-	defaultProxeusUrl  = "http://127.0.0.1:1323"
-	defaultAuthkey     = "auth"
+	serviceID                    = "node-balance-retriever"
+	defaultServiceName           = "Retrieve Token Balances"
+	defaultServiceUrl            = "127.0.0.1"
+	defaultServicePort           = "8012"
+	defaultJWTSecret             = "my secret 2"
+	defaultProxeusUrl            = "http://127.0.0.1:1323"
+	defaultAuthkey               = "auth"
+	defaultRegisterRetryInterval = 5
 )
 
 var (
@@ -54,6 +56,14 @@ func main() {
 	serviceName := os.Getenv("SERVICE_NAME")
 	if len(serviceName) == 0 {
 		serviceName = defaultServiceName
+	}
+	registerRetryInterval_input := os.Getenv("REGISTER_RETRY_INTERVAL")
+	registerRetryInterval := defaultRegisterRetryInterval
+	if len(registerRetryInterval_input) >= 0 {
+		registerRetryInterval_parsed, err := strconv.Atoi(registerRetryInterval_input)
+		if err == nil {
+			registerRetryInterval = registerRetryInterval_parsed
+		}
 	}
 	fmt.Println()
 	fmt.Println("#######################################################")
@@ -149,7 +159,7 @@ func main() {
 		g.POST("/remove", externalnode.Nop)
 		g.POST("/close", externalnode.Nop)
 	}
-	externalnode.Register(proxeusUrl, serviceName, serviceUrl, jwtsecret, "Retrieves token balances of an address")
+	externalnode.Register(proxeusUrl, serviceName, serviceUrl, jwtsecret, "Retrieves token balances of an address", registerRetryInterval)
 	err = e.Start("0.0.0.0:" + servicePort)
 	if err != nil {
 		log.Println("[taxreporter][run] Start err: ", err.Error())

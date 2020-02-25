@@ -17,7 +17,7 @@ build: test
 	chmod +x artifacts/${BIN_NAME}
 
 package: build
-	docker build --build-arg BIN_NAME=${BIN_NAME} -t $(IMAGE_NAME):local .
+	DOCKER_BUILDKIT=1 docker build --build-arg BIN_NAME=${BIN_NAME} -t $(IMAGE_NAME):local .
 
 tag: package
 	docker tag $(IMAGE_NAME):local $(IMAGE_NAME):latest

@@ -18,6 +18,7 @@ services:
       PROXEUS_INFURA_API_KEY: ${PROXEUS_INFURA_API_KEY}
       SERVICE_SECRET: secret
       SERVICE_PORT: 8012
+      REGISTER_RETRY_INTERVAL: 3
       SERVICE_URL: http://node-balance-retriever:8012
       TZ: Europe/Zurich
     ports:
