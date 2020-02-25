@@ -11,7 +11,7 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 
-	"github.com/ProxeusApp/proxeus-core/externalnode"
+	externalnode "github.com/ProxeusApp/node-go"
 
 	"github.com/ProxeusApp/node-balance-retriever/service"
 	"github.com/ProxeusApp/proxeus-core/main/handlers/blockchain/ethglue"
