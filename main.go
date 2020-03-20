@@ -20,9 +20,7 @@ import (
 )
 
 const (
-	serviceID          = "node-balance-retriever"
 	defaultServiceName = "Retrieve Token Balances"
-	defaultServiceUrl  = "127.0.0.1"
 	defaultServicePort = "8012"
 	defaultJWTSecret   = "my secret 2"
 	defaultProxeusUrl  = "http://127.0.0.1:1323"
