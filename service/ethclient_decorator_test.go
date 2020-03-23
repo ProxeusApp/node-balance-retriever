@@ -2,20 +2,26 @@ package service
 
 import (
 	"context"
-	"github.com/labstack/gommon/random"
 	"math/big"
 	"os"
+	"path/filepath"
 	"testing"
+
+	"github.com/labstack/gommon/random"
 
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/stretchr/testify/assert"
 )
 
+func TestCreateBackupFile(t *testing.T) {
+
+}
+
 func TestCacheKey(t *testing.T) {
 
 	ethClient := NewEthClientStub()
-	filename := os.TempDir() + random.String(5, random.Alphanumeric)
+	filename := filepath.Join(os.TempDir(), random.String(5, random.Alphanumeric))
 
 	ethClientDecorator, err := NewDiskCacheEthClientDecorator(ethClient, filename)
 	if err != nil {
@@ -66,7 +72,6 @@ func TestCacheKey(t *testing.T) {
 			Addresses: []common.Address{
 				common.HexToAddress("0x043129ab3945d2bb75f3b5de21487343efbeffd2"),
 			},
-			Topics: nil,
 		}
 
 		ethClientDecorator.FilterLogs(context.Background(), query)

@@ -4,14 +4,15 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"github.com/ethereum/go-ethereum"
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/core/types"
 	"io"
 	"log"
 	"math/big"
 	"os"
 	"sync"
+
+	"github.com/ethereum/go-ethereum"
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/core/types"
 )
 
 type diskCacheEthClientDecorator struct {
@@ -23,13 +24,22 @@ type diskCacheEthClientDecorator struct {
 }
 
 func NewDiskCacheEthClientDecorator(ethClient EthereumClient, filename string) (*diskCacheEthClientDecorator, error) {
-	inMemoryCacheEthClientDecorator := diskCacheEthClientDecorator{ethClient: ethClient, filename: filename}
-	err := inMemoryCacheEthClientDecorator.restoreCacheFromFile()
-	if err != nil {
-		return nil, err
+	client := diskCacheEthClientDecorator{ethClient: ethClient, filename: filename}
+	if !client.fileExists() {
+		_, err := os.Create(client.filename)
+		if err != nil {
+			log.Println("Can't create file " + client.filename)
+			return nil, err
+		}
+	} else {
+		err := client.restoreCacheFromFile()
+		if err != nil {
+			log.Println("Can't restore cache from file", err)
+			return nil, err
+		}
 	}
 
-	return &inMemoryCacheEthClientDecorator, nil
+	return &client, nil
 }
 
 func (me *diskCacheEthClientDecorator) HeaderByNumber(ctx context.Context, number *big.Int) (*types.Header, error) {
@@ -66,6 +76,15 @@ func (me *diskCacheEthClientDecorator) cacheKey(q ethereum.FilterQuery) string {
 		addressesKey += "" + key.String()
 	}
 	return q.FromBlock.String() + "-" + q.ToBlock.String() + "-" + addressesKey
+}
+
+func (me *diskCacheEthClientDecorator) fileExists() bool {
+	info, err := os.Stat(me.filename)
+	if os.IsNotExist(err) {
+		return false
+	}
+
+	return !info.IsDir()
 }
 
 func (me *diskCacheEthClientDecorator) restoreCacheFromFile() error {
