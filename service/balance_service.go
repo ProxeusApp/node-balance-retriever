@@ -8,6 +8,7 @@ import (
 	"math/big"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/ProxeusApp/node-balance-retriever/blockchain"
 	"github.com/ethereum/go-ethereum"
@@ -209,6 +210,7 @@ func (me *ethClientBalanceService) worker(workerId int, jobs <-chan job, errChan
 			me.balanceLock.Unlock()
 		}
 
+		time.Sleep(15 * time.Millisecond) // Infura
 		job.jobsDoneChan <- true
 	}
 }

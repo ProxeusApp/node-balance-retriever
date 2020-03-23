@@ -88,41 +88,21 @@ func main() {
 		mkrAddress = "0x710129558E8ffF5caB9c0c9c43b99d79Ed864B99" //ropsten
 	}
 
-	batAddress := os.Getenv("PROXEUS_BAT_ADDRESS")
-	if len(batAddress) == 0 {
-		//batAddress = "" //mainnet
-		batAddress = "0x60B10C134088ebD63f80766874e2Cade05fc987B" //ropsten
-	}
-
 	omgAddress := os.Getenv("PROXEUS_OMG_ADDRESS")
 	if len(omgAddress) == 0 {
 		//omgAddress = "" //mainnet
 		omgAddress = "0x9820B36a37Af9389a23ACfb7988C0ee6837763b6" //ropsten
 	}
 
-	zrxAddress := os.Getenv("PROXEUS_ZRX_ADDRESS")
-	if len(zrxAddress) == 0 {
-		//zrxAddress = "" //mainnet
-		zrxAddress = "0xA8E9Fa8f91e5Ae138C74648c9C304F1C75003A8D" //ropsten
-	}
-
-	enjAddress := os.Getenv("PROXEUS_ENJ_ADDRESS")
-	if len(enjAddress) == 0 {
-		//enjAddress = "" //mainnet
-		enjAddress = "0x81Ec0eD50441fc3d1d63763F27b24081E5b516d5" //ropsten
-	}
-
 	//make sure to add new contract addresses with checksum (EIP-55)
 	tokensMap := map[string]string{
 		common.HexToAddress(xesAddress).String(): "XES",
 		common.HexToAddress(mkrAddress).String(): "MKR",
-		common.HexToAddress(batAddress).String(): "BAT",
 		common.HexToAddress(omgAddress).String(): "OMG",
-		common.HexToAddress(zrxAddress).String(): "ZRX",
-		common.HexToAddress(enjAddress).String(): "ENJ",
 	}
 
-	balanceService, err := service.NewEthClientBalanceService(ethClient, tokensMap)
+	cachedEthClientDecorator := service.NewCacheEthClientDecorator(ethClient)
+	balanceService, err := service.NewEthClientBalanceService(cachedEthClientDecorator, tokensMap)
 	if err != nil {
 		log.Println("[taxreporter][run] NewEthClientBalanceService err: ", err.Error())
 		return

@@ -7,5 +7,5 @@ require (
 	github.com/ProxeusApp/proxeus-core/externalnode v0.0.0-20200218131402-646bf4b611a1
 	github.com/ethereum/go-ethereum v1.9.10
 	github.com/labstack/echo v3.3.10+incompatible
-	github.com/stretchr/testify v1.4.0
+	github.com/stretchr/testify v1.5.1
 )

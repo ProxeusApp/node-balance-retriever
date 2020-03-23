@@ -17,6 +17,8 @@ type ethClientStub struct {
 	EthBalance *big.Int
 	XESBalance *big.Int
 	erc20ABI   abi.ABI
+
+	FilterLogsCallsCount int
 }
 
 func NewEthClientStub() *ethClientStub {
@@ -35,19 +37,20 @@ func NewEthClientStub() *ethClientStub {
 	}
 }
 
-func (me ethClientStub) HeaderByNumber(ctx context.Context, number *big.Int) (*types.Header, error) {
+func (me *ethClientStub) HeaderByNumber(ctx context.Context, number *big.Int) (*types.Header, error) {
 
 	return &types.Header{
 		Number: big.NewInt(600),
 	}, nil
 }
 
-func (me ethClientStub) BalanceAt(ctx context.Context, account common.Address, blockNumber *big.Int) (*big.Int, error) {
+func (me *ethClientStub) BalanceAt(ctx context.Context, account common.Address, blockNumber *big.Int) (*big.Int, error) {
 
 	return me.EthBalance, nil
 }
 
-func (me ethClientStub) FilterLogs(ctx context.Context, q ethereum.FilterQuery) ([]types.Log, error) {
+func (me *ethClientStub) FilterLogs(ctx context.Context, q ethereum.FilterQuery) ([]types.Log, error) {
+	me.FilterLogsCallsCount++
 	xesSmartContractAddress := common.HexToAddress("0xA017ac5faC5941f95010b12570B812C974469c2C")
 	targetAddress := common.HexToHash("0x043129ab3945D2bB75f3B5DE21487343EFBeffd2")
 

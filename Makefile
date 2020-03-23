@@ -1,9 +1,12 @@
-.PHONY: fmt test build package tag run push clean
+.PHONY: init fmt test build package tag run push clean
 
 BIN_NAME=node
 IMAGE_NAME=proxeus/node-balance-retriever
 
 default: fmt test build package tag run
+
+init:
+	go install golang.org/x/tools/cmd/goimports
 
 fmt:
 	goimports -w .
