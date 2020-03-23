@@ -101,7 +101,10 @@ func main() {
 		common.HexToAddress(omgAddress).String(): "OMG",
 	}
 
-	cachedEthClientDecorator := service.NewCacheEthClientDecorator(ethClient)
+	cachedEthClientDecorator, err := service.NewDiskCacheEthClientDecorator(ethClient, "cache.blocks")
+	if err != nil {
+		panic(err)
+	}
 	balanceService, err := service.NewEthClientBalanceService(cachedEthClientDecorator, tokensMap)
 	if err != nil {
 		log.Println("[taxreporter][run] NewEthClientBalanceService err: ", err.Error())

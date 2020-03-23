@@ -56,7 +56,7 @@ func NewEthClientBalanceService(ethClient EthereumClient, contractTokensMap map[
 	return &ethClientBalanceService{
 		ethClient:              ethClient,
 		smartContractTokensMap: contractTokensMap,
-		workersPoolSize:        8,
+		workersPoolSize:        4,
 		erc20:                  erc20,
 	}, nil
 }
@@ -117,7 +117,7 @@ func (me *ethClientBalanceService) extractERC20Balances(ctx context.Context, toB
 	defer close(errChan)
 
 	// Split into block chunks as we don't want (can't) to process the whole blockchain at once
-	startBlocks, endBlocks, err := me.getBlockChunks(big.NewInt(int64(0)), toBlockNumber, 600)
+	startBlocks, endBlocks, err := me.getBlockChunks(big.NewInt(int64(0)), toBlockNumber, 400)
 	if err != nil {
 		return nil, err
 	}
@@ -176,6 +176,7 @@ func (me *ethClientBalanceService) worker(workerId int, jobs <-chan job, errChan
 		logs, err := me.ethClient.FilterLogs(job.ctx, query)
 		if err != nil {
 			errChan <- err
+			return
 		}
 
 		for _, eventLog := range logs {
@@ -190,6 +191,7 @@ func (me *ethClientBalanceService) worker(workerId int, jobs <-chan job, errChan
 			transferEvent, err := me.parseTransferEventFromLog(eventLog)
 			if err != nil {
 				errChan <- err
+				return
 			}
 
 			balanceInterface, _ := job.balancesMap.LoadOrStore(tokenCode, big.NewInt(0))

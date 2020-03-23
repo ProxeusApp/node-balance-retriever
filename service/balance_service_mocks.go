@@ -40,7 +40,7 @@ func NewEthClientStub() *ethClientStub {
 func (me *ethClientStub) HeaderByNumber(ctx context.Context, number *big.Int) (*types.Header, error) {
 
 	return &types.Header{
-		Number: big.NewInt(600),
+		Number: big.NewInt(300),
 	}, nil
 }
 
@@ -74,7 +74,7 @@ func (me *ethClientStub) FilterLogs(ctx context.Context, q ethereum.FilterQuery)
 				targetAddress, // To
 			},
 			Data:        common.BytesToHash(firstTransferValue.Bytes()).Bytes(),
-			BlockNumber: 500,
+			BlockNumber: 200,
 			TxHash:      common.HexToHash("0x640200e1f5b8ebd7bc3147c50437e5e74600959e58b5c4e1a1da2803e1b8663c"),
 			Removed:     false,
 		},
@@ -87,7 +87,7 @@ func (me *ethClientStub) FilterLogs(ctx context.Context, q ethereum.FilterQuery)
 				targetAddress,
 			},
 			Data:        common.BytesToHash(secondTransferValue.Bytes()).Bytes(),
-			BlockNumber: 505,
+			BlockNumber: 205,
 			TxHash:      common.HexToHash("0x140200e1f5b8ebd7bc3147c50437e5e74600959e58b5c4e1a1da2803e1b8663c"),
 			Removed:     false,
 		},
@@ -100,7 +100,7 @@ func (me *ethClientStub) FilterLogs(ctx context.Context, q ethereum.FilterQuery)
 				common.HexToHash("0x043129ab3945D2bB75f3B5DE21487343EFBeffd2"),
 			},
 			Data:        common.BytesToHash(secondTransferValue.Bytes()).Bytes(),
-			BlockNumber: 505,
+			BlockNumber: 205,
 			TxHash:      common.HexToHash("0x520200e1f5b8ebd7bc3147c50437e5e74600959e58b5c4e1a1da2803e1b8663c"),
 			Removed:     false,
 		},
@@ -113,7 +113,7 @@ func (me *ethClientStub) FilterLogs(ctx context.Context, q ethereum.FilterQuery)
 				common.HexToHash("0xef91ecd0142ae4c5163b2cf060c0563d49188c82"),
 			},
 			Data:        common.BytesToHash(thirdTransferValue.Bytes()).Bytes(),
-			BlockNumber: 507,
+			BlockNumber: 207,
 			TxHash:      common.HexToHash("0x140200e1f5b8ebd7bc3147c50437e5e74600959e58b5c4e1a1da2803e1b8663c"),
 			Removed:     false,
 		},

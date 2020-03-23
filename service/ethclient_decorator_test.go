@@ -2,17 +2,25 @@ package service
 
 import (
 	"context"
+	"github.com/labstack/gommon/random"
+	"math/big"
+	"os"
+	"testing"
+
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/stretchr/testify/assert"
-	"math/big"
-	"testing"
 )
 
 func TestCacheKey(t *testing.T) {
 
 	ethClient := NewEthClientStub()
-	ethClientDecorator := NewCacheEthClientDecorator(ethClient)
+	filename := os.TempDir() + random.String(5, random.Alphanumeric)
+
+	ethClientDecorator, err := NewDiskCacheEthClientDecorator(ethClient, filename)
+	if err != nil {
+		panic(err)
+	}
 
 	t.Run("key is generated even with all to nil", func(t *testing.T) {
 		cacheKey := ethClientDecorator.cacheKey(ethereum.FilterQuery{
@@ -42,13 +50,13 @@ func TestCacheKey(t *testing.T) {
 			FromBlock: big.NewInt(500),
 			ToBlock:   big.NewInt(900000),
 			Addresses: []common.Address{
-				common.HexToAddress("0x043129ab3945d2bb75f3b5de21487343efbeffd2"),
-				common.HexToAddress("0x123129ab3945d2bb75f3b5de21487343efbeffd2"),
+				common.HexToAddress("0x043129ab3945D2bB75f3B5DE21487343EFBeffd2"),
+				common.HexToAddress("0x123129aB3945d2bb75f3b5de21487343eFBeFfd2"),
 			},
 			Topics: nil,
 		})
 
-		assert.Equal(t, "500-900000-0x043129ab3945d2bb75f3b5de21487343efbeffd2-0x123129ab3945d2bb75f3b5de21487343efbeffd2", cacheKey)
+		assert.Equal(t, "500-900000-0x043129ab3945D2bB75f3B5DE21487343EFBeffd20x123129aB3945d2bb75f3b5de21487343eFBeFfd2", cacheKey)
 	})
 
 	t.Run("result is cached after first call", func(t *testing.T) {
