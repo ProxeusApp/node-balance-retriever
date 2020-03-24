@@ -53,10 +53,12 @@ func NewEthClientBalanceService(ethClient EthereumClient, contractTokensMap map[
 		return nil, err
 	}
 
+	workersPoolSize := 4
+
 	return &ethClientBalanceService{
 		ethClient:              ethClient,
 		smartContractTokensMap: contractTokensMap,
-		workersPoolSize:        4,
+		workersPoolSize:        workersPoolSize,
 		erc20:                  erc20,
 	}, nil
 }
@@ -112,10 +114,18 @@ func (me *ethClientBalanceService) extractERC20Balances(ctx context.Context, toB
 		jobsDoneChan = make(chan bool, 100)
 		errChan      = make(chan error, 1)
 	)
-	defer close(jobsChan)
-	defer close(jobsDoneChan)
-	defer close(errChan)
+	// A graceful stop channel. Workers are listening to this, and whenever there's a shutdown in progress due to
+	// an error, they'll stop working (finishing their current job) and return.
+	gracefulStopChan := make(chan bool, me.workersPoolSize)
+	gracefulWaitGroup := sync.WaitGroup{}
+	gracefulWaitGroup.Add(me.workersPoolSize)
 
+	/*
+		todo: only close when gracefully stopped workers
+		defer close(jobsChan)
+		defer close(jobsDoneChan)
+		defer close(errChan)
+	*/
 	// Split into block chunks as we don't want (can't) to process the whole blockchain at once
 	startBlocks, endBlocks, err := me.getBlockChunks(big.NewInt(int64(0)), toBlockNumber, 400)
 	if err != nil {
@@ -124,7 +134,7 @@ func (me *ethClientBalanceService) extractERC20Balances(ctx context.Context, toB
 
 	// Create a pool of workers
 	for workerId := 1; workerId <= me.workersPoolSize; workerId++ {
-		go me.worker(workerId, jobsChan, errChan)
+		go me.worker(workerId, jobsChan, errChan, gracefulStopChan, gracefulWaitGroup)
 	}
 
 	go func() {
@@ -143,14 +153,27 @@ func (me *ethClientBalanceService) extractERC20Balances(ctx context.Context, toB
 		log.Println("All jobs sent to chan")
 	}()
 
+	jobsDoneCount := 0
 	// Wait until all jobs are processed. Each one could return an error
 	for r := 0; r < len(startBlocks); r++ {
 		select {
 		case err := <-errChan:
 			log.Printf("An error occurred %v", err)
+			for i := 0; i < me.workersPoolSize-1; i++ {
+				// Stop all remaining active workers, one already stopped
+				gracefulStopChan <- true
+			}
+
 			return nil, err
 		case <-jobsDoneChan:
+			jobsDoneCount++
 		}
+	}
+
+	// We could reach this point due to an error occurred or because all jobs have finished.
+	if jobsDoneCount != len(startBlocks) {
+		// An error occurred
+		log.Println("Error detected, wait until all workers have finished their job before closing channels")
 	}
 
 	return &balancesMap, nil
@@ -158,62 +181,69 @@ func (me *ethClientBalanceService) extractERC20Balances(ctx context.Context, toB
 
 // Expensive operation of retrieving all event logs between two blocks. Whenever a "job" is sent to the worker,
 // it first processes it, then waits for another.
-func (me *ethClientBalanceService) worker(workerId int, jobs <-chan job, errChan chan error) {
+func (me *ethClientBalanceService) worker(workerId int, jobs <-chan job, errChan chan error, gracefulStopChan chan bool, gracefulWaitGroup sync.WaitGroup) {
 	log.Printf("Worker %d ready", workerId)
 
 	for job := range jobs {
-		// Find events "Transfer" on all defined ERC20's smart contracts
-		query := ethereum.FilterQuery{
-			Addresses: me.smartContractAddresses(),
-			FromBlock: job.startBlock,
-			ToBlock:   job.endBlock,
-			Topics: [][]common.Hash{{
-				me.erc20.Events["Transfer"].ID(),
-			},
-			},
-		}
-
-		logs, err := me.ethClient.FilterLogs(job.ctx, query)
-		if err != nil {
-			errChan <- err
+		select {
+		case <-gracefulStopChan:
+			log.Printf("Worker %d received stop signal, exit", workerId)
+			gracefulWaitGroup.Done()
 			return
-		}
-
-		for _, eventLog := range logs {
-			tokenCode, found := me.smartContractTokensMap[eventLog.Address.Hex()]
-			if !found {
-				log.Printf("Token %s not found, we don't have a mapping to smart contract. address %s", tokenCode, eventLog.Address.Hex())
-				continue
+		default:
+			// Find events "Transfer" on all defined ERC20's smart contracts
+			query := ethereum.FilterQuery{
+				Addresses: me.smartContractAddresses(),
+				FromBlock: job.startBlock,
+				ToBlock:   job.endBlock,
+				Topics: [][]common.Hash{{
+					me.erc20.Events["Transfer"].ID(),
+				},
+				},
 			}
 
-			me.balanceLock.Lock()
-
-			transferEvent, err := me.parseTransferEventFromLog(eventLog)
+			logs, err := me.ethClient.FilterLogs(job.ctx, query)
 			if err != nil {
 				errChan <- err
 				return
 			}
 
-			balanceInterface, _ := job.balancesMap.LoadOrStore(tokenCode, big.NewInt(0))
-			addressBalance := balanceInterface.(*big.Int)
+			for _, eventLog := range logs {
+				tokenCode, found := me.smartContractTokensMap[eventLog.Address.Hex()]
+				if !found {
+					log.Printf("Token %s not found, we don't have a mapping to smart contract. address %s", tokenCode, eventLog.Address.Hex())
+					continue
+				}
 
-			if transferEvent.IsReceiver(job.address) {
-				newBalance := big.NewInt(0).Add(addressBalance, transferEvent.Value)
-				log.Printf("Detected an incoming transfer of %d %s (txHash %s). New balance: %d", transferEvent.Value, tokenCode, eventLog.TxHash.Hex(), newBalance)
-				job.balancesMap.Store(tokenCode, newBalance)
+				me.balanceLock.Lock()
+
+				transferEvent, err := me.parseTransferEventFromLog(eventLog)
+				if err != nil {
+					errChan <- err
+					return
+				}
+
+				balanceInterface, _ := job.balancesMap.LoadOrStore(tokenCode, big.NewInt(0))
+				addressBalance := balanceInterface.(*big.Int)
+
+				if transferEvent.IsReceiver(job.address) {
+					newBalance := big.NewInt(0).Add(addressBalance, transferEvent.Value)
+					log.Printf("Detected an incoming transfer of %d %s (txHash %s). New balance: %d", transferEvent.Value, tokenCode, eventLog.TxHash.Hex(), newBalance)
+					job.balancesMap.Store(tokenCode, newBalance)
+				}
+
+				if transferEvent.IsSender(job.address) {
+					newBalance := big.NewInt(0).Sub(addressBalance, transferEvent.Value)
+					log.Printf("Detected an outgoing transfer of %d %s (txHash %s). New balance: %d", transferEvent.Value, tokenCode, eventLog.TxHash.Hex(), newBalance)
+					job.balancesMap.Store(tokenCode, newBalance)
+				}
+
+				me.balanceLock.Unlock()
 			}
 
-			if transferEvent.IsSender(job.address) {
-				newBalance := big.NewInt(0).Sub(addressBalance, transferEvent.Value)
-				log.Printf("Detected an outgoing transfer of %d %s (txHash %s). New balance: %d", transferEvent.Value, tokenCode, eventLog.TxHash.Hex(), newBalance)
-				job.balancesMap.Store(tokenCode, newBalance)
-			}
-
-			me.balanceLock.Unlock()
+			time.Sleep(15 * time.Millisecond) // Infura
+			job.jobsDoneChan <- true
 		}
-
-		time.Sleep(15 * time.Millisecond) // Infura
-		job.jobsDoneChan <- true
 	}
 }
 

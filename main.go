@@ -88,17 +88,10 @@ func main() {
 		mkrAddress = "0x710129558E8ffF5caB9c0c9c43b99d79Ed864B99" //ropsten
 	}
 
-	omgAddress := os.Getenv("PROXEUS_OMG_ADDRESS")
-	if len(omgAddress) == 0 {
-		//omgAddress = "" //mainnet
-		omgAddress = "0x9820B36a37Af9389a23ACfb7988C0ee6837763b6" //ropsten
-	}
-
 	//make sure to add new contract addresses with checksum (EIP-55)
 	tokensMap := map[string]string{
 		common.HexToAddress(xesAddress).String(): "XES",
 		common.HexToAddress(mkrAddress).String(): "MKR",
-		common.HexToAddress(omgAddress).String(): "OMG",
 	}
 
 	cachedEthClientDecorator, err := service.NewDiskCacheEthClientDecorator(ethClient, "cache.blocks")

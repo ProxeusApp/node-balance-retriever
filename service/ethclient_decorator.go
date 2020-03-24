@@ -25,7 +25,7 @@ type diskCacheEthClientDecorator struct {
 
 func NewDiskCacheEthClientDecorator(ethClient EthereumClient, filename string) (*diskCacheEthClientDecorator, error) {
 	client := diskCacheEthClientDecorator{ethClient: ethClient, filename: filename}
-	if !client.fileExists() {
+	/*if !client.fileExists() {
 		_, err := os.Create(client.filename)
 		if err != nil {
 			log.Println("Can't create file " + client.filename)
@@ -37,7 +37,7 @@ func NewDiskCacheEthClientDecorator(ethClient EthereumClient, filename string) (
 			log.Println("Can't restore cache from file", err)
 			return nil, err
 		}
-	}
+	}*/
 
 	return &client, nil
 }
