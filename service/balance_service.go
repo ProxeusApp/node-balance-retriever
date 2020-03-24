@@ -109,10 +109,11 @@ func (me *ethClientBalanceService) GetBalancesForAddress(ctx context.Context, ad
 
 func (me *ethClientBalanceService) extractERC20Balances(ctx context.Context, toBlockNumber *big.Int, address string) (*sync.Map, error) {
 	var (
-		balancesMap  sync.Map
-		jobsChan     = make(chan job, 1000)
-		jobsDoneChan = make(chan bool, 100)
-		errChan      = make(chan error, 1)
+		balancesMap   sync.Map
+		jobsChan      = make(chan job, 1000)
+		jobsDoneChan  = make(chan bool, 100)
+		errChan       = make(chan error, 1)
+		jobsDoneCount = 0
 	)
 	// A graceful stop channel. Workers are listening to this, and whenever there's a shutdown in progress due to
 	// an error, they'll stop working (finishing their current job) and return.
@@ -120,17 +121,23 @@ func (me *ethClientBalanceService) extractERC20Balances(ctx context.Context, toB
 	gracefulWaitGroup := sync.WaitGroup{}
 	gracefulWaitGroup.Add(me.workersPoolSize)
 
-	/*
-		todo: only close when gracefully stopped workers
-		defer close(jobsChan)
-		defer close(jobsDoneChan)
-		defer close(errChan)
-	*/
 	// Split into block chunks as we don't want (can't) to process the whole blockchain at once
 	startBlocks, endBlocks, err := me.getBlockChunks(big.NewInt(int64(0)), toBlockNumber, 400)
 	if err != nil {
 		return nil, err
 	}
+
+	defer func() {
+		// We could reach this point due to an error occurred or because all jobs have finished.
+		if jobsDoneCount != len(startBlocks) {
+			// An error occurred
+			log.Println("Error detected, wait until all workers have finished their job before closing channels")
+			defer gracefulWaitGroup.Wait()
+		}
+		close(jobsChan)
+		close(jobsDoneChan)
+		close(errChan)
+	}()
 
 	// Create a pool of workers
 	for workerId := 1; workerId <= me.workersPoolSize; workerId++ {
@@ -153,7 +160,6 @@ func (me *ethClientBalanceService) extractERC20Balances(ctx context.Context, toB
 		log.Println("All jobs sent to chan")
 	}()
 
-	jobsDoneCount := 0
 	// Wait until all jobs are processed. Each one could return an error
 	for r := 0; r < len(startBlocks); r++ {
 		select {
@@ -168,12 +174,6 @@ func (me *ethClientBalanceService) extractERC20Balances(ctx context.Context, toB
 		case <-jobsDoneChan:
 			jobsDoneCount++
 		}
-	}
-
-	// We could reach this point due to an error occurred or because all jobs have finished.
-	if jobsDoneCount != len(startBlocks) {
-		// An error occurred
-		log.Println("Error detected, wait until all workers have finished their job before closing channels")
 	}
 
 	return &balancesMap, nil

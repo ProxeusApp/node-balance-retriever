@@ -8,6 +8,7 @@ import (
 	"log"
 	"math/big"
 	"os"
+	"sort"
 	"sync"
 
 	"github.com/ethereum/go-ethereum"
@@ -57,6 +58,7 @@ func (me *diskCacheEthClientDecorator) FilterLogs(ctx context.Context, q ethereu
 		return cachedLogs.([]types.Log), nil
 	}
 
+	me.sortAddresses(&q)
 	logs, err := me.ethClient.FilterLogs(ctx, q)
 	if err != nil {
 		return logs, err
@@ -72,6 +74,7 @@ func (me *diskCacheEthClientDecorator) cacheKey(q ethereum.FilterQuery) string {
 	if len(q.Addresses) == 0 {
 		addressesKey = ""
 	}
+
 	for _, key := range q.Addresses {
 		addressesKey += "" + key.String()
 	}
@@ -119,4 +122,17 @@ func (me *diskCacheEthClientDecorator) updateCacheFile() error {
 	}
 	_, err = io.Copy(f, bytes.NewReader(data))
 	return err
+}
+
+func (me *diskCacheEthClientDecorator) sortAddresses(query *ethereum.FilterQuery) {
+	stringAddresses := make([]string, len(query.Addresses))
+	for i, address := range query.Addresses {
+		stringAddresses[i] = address.String()
+	}
+
+	sort.Strings(stringAddresses)
+
+	for i, stringAddress := range stringAddresses {
+		query.Addresses[i] = common.HexToAddress(stringAddress)
+	}
 }
