@@ -185,64 +185,68 @@ func (me *ethClientBalanceService) worker(workerId int, jobs <-chan job, errChan
 	log.Printf("Worker %d ready", workerId)
 
 	for job := range jobs {
+		gracefullyShuttingDown := false
 		select {
 		case <-gracefulStopChan:
 			log.Printf("Worker %d received stop signal, exit", workerId)
-			gracefulWaitGroup.Done()
-			return
+			gracefullyShuttingDown = true
 		default:
-			// Find events "Transfer" on all defined ERC20's smart contracts
-			query := ethereum.FilterQuery{
-				Addresses: me.smartContractAddresses(),
-				FromBlock: job.startBlock,
-				ToBlock:   job.endBlock,
-				Topics: [][]common.Hash{{
-					me.erc20.Events["Transfer"].ID(),
-				},
-				},
+		}
+		// Find events "Transfer" on all defined ERC20's smart contracts
+		query := ethereum.FilterQuery{
+			Addresses: me.smartContractAddresses(),
+			FromBlock: job.startBlock,
+			ToBlock:   job.endBlock,
+			Topics: [][]common.Hash{{
+				me.erc20.Events["Transfer"].ID(),
+			},
+			},
+		}
+
+		logs, err := me.ethClient.FilterLogs(job.ctx, query)
+		if err != nil {
+			errChan <- err
+			return
+		}
+
+		for _, eventLog := range logs {
+			tokenCode, found := me.smartContractTokensMap[eventLog.Address.Hex()]
+			if !found {
+				log.Printf("Token %s not found, we don't have a mapping to smart contract. address %s", tokenCode, eventLog.Address.Hex())
+				continue
 			}
 
-			logs, err := me.ethClient.FilterLogs(job.ctx, query)
+			me.balanceLock.Lock()
+
+			transferEvent, err := me.parseTransferEventFromLog(eventLog)
 			if err != nil {
 				errChan <- err
 				return
 			}
 
-			for _, eventLog := range logs {
-				tokenCode, found := me.smartContractTokensMap[eventLog.Address.Hex()]
-				if !found {
-					log.Printf("Token %s not found, we don't have a mapping to smart contract. address %s", tokenCode, eventLog.Address.Hex())
-					continue
-				}
+			balanceInterface, _ := job.balancesMap.LoadOrStore(tokenCode, big.NewInt(0))
+			addressBalance := balanceInterface.(*big.Int)
 
-				me.balanceLock.Lock()
-
-				transferEvent, err := me.parseTransferEventFromLog(eventLog)
-				if err != nil {
-					errChan <- err
-					return
-				}
-
-				balanceInterface, _ := job.balancesMap.LoadOrStore(tokenCode, big.NewInt(0))
-				addressBalance := balanceInterface.(*big.Int)
-
-				if transferEvent.IsReceiver(job.address) {
-					newBalance := big.NewInt(0).Add(addressBalance, transferEvent.Value)
-					log.Printf("Detected an incoming transfer of %d %s (txHash %s). New balance: %d", transferEvent.Value, tokenCode, eventLog.TxHash.Hex(), newBalance)
-					job.balancesMap.Store(tokenCode, newBalance)
-				}
-
-				if transferEvent.IsSender(job.address) {
-					newBalance := big.NewInt(0).Sub(addressBalance, transferEvent.Value)
-					log.Printf("Detected an outgoing transfer of %d %s (txHash %s). New balance: %d", transferEvent.Value, tokenCode, eventLog.TxHash.Hex(), newBalance)
-					job.balancesMap.Store(tokenCode, newBalance)
-				}
-
-				me.balanceLock.Unlock()
+			if transferEvent.IsReceiver(job.address) {
+				newBalance := big.NewInt(0).Add(addressBalance, transferEvent.Value)
+				log.Printf("Detected an incoming transfer of %d %s (txHash %s). New balance: %d", transferEvent.Value, tokenCode, eventLog.TxHash.Hex(), newBalance)
+				job.balancesMap.Store(tokenCode, newBalance)
 			}
 
-			time.Sleep(15 * time.Millisecond) // Infura
-			job.jobsDoneChan <- true
+			if transferEvent.IsSender(job.address) {
+				newBalance := big.NewInt(0).Sub(addressBalance, transferEvent.Value)
+				log.Printf("Detected an outgoing transfer of %d %s (txHash %s). New balance: %d", transferEvent.Value, tokenCode, eventLog.TxHash.Hex(), newBalance)
+				job.balancesMap.Store(tokenCode, newBalance)
+			}
+
+			me.balanceLock.Unlock()
+		}
+
+		time.Sleep(15 * time.Millisecond) // Infura
+		job.jobsDoneChan <- true
+		if gracefullyShuttingDown {
+			log.Printf("Gracefully shutting down worker %d", workerId)
+			return
 		}
 	}
 }
