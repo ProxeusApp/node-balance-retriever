@@ -14,7 +14,6 @@ import (
 	"github.com/ProxeusApp/proxeus-core/externalnode"
 
 	"github.com/ProxeusApp/node-balance-retriever/service"
-	"github.com/ProxeusApp/proxeus-core/main/handlers/blockchain/ethglue"
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
 )
@@ -71,11 +70,6 @@ func main() {
 		panic("missing required env variable PROXEUS_INFURA_API_KEY")
 	}
 
-	ethClient, err := ethglue.Dial(ethClientUrl + infuraApiKey)
-	if err != nil {
-		panic(fmt.Sprintf("[taxreporter][run] ethglue.Dial err: %s", err.Error()))
-	}
-
 	xesAddress := os.Getenv("PROXEUS_XES_ADDRESS")
 	if len(xesAddress) == 0 {
 		//xesAddress = "0xA017ac5faC5941f95010b12570B812C974469c2C" //mainnet
@@ -122,11 +116,7 @@ func main() {
 		common.HexToAddress(enjAddress).String(): "ENJ",
 	}
 
-	balanceService, err := service.NewEthClientBalanceService(ethClient, tokensMap)
-	if err != nil {
-		log.Println("[taxreporter][run] NewEthClientBalanceService err: ", err.Error())
-		return
-	}
+	balanceService := service.NewEthplorerBalanceService(tokensMap)
 
 	ethereumBalanceService = service.NewEthereumBalanceService(balanceService)
 
@@ -148,7 +138,7 @@ func main() {
 		g.POST("/close", externalnode.Nop)
 	}
 	externalnode.Register(proxeusUrl, serviceName, serviceUrl, jwtsecret, "Retrieves token balances of an address")
-	err = e.Start("0.0.0.0:" + servicePort)
+	err := e.Start("0.0.0.0:" + servicePort)
 	if err != nil {
 		log.Println("[taxreporter][run] Start err: ", err.Error())
 	}
