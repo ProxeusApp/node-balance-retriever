@@ -60,16 +60,6 @@ func main() {
 	fmt.Println("#######################################################")
 	fmt.Println()
 
-	ethClientUrl := os.Getenv("PROXEUS_ETH_CLIENT_URL")
-	if len(ethClientUrl) == 0 {
-		ethClientUrl = "https://ropsten.infura.io/v3/"
-	}
-
-	infuraApiKey := os.Getenv("PROXEUS_INFURA_API_KEY")
-	if len(infuraApiKey) == 0 {
-		panic("missing required env variable PROXEUS_INFURA_API_KEY")
-	}
-
 	xesAddress := os.Getenv("PROXEUS_XES_ADDRESS")
 	if len(xesAddress) == 0 {
 		//xesAddress = "0xA017ac5faC5941f95010b12570B812C974469c2C" //mainnet
