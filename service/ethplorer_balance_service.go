@@ -13,14 +13,15 @@ import (
 
 type ethplorerBalanceService struct {
 	smartContractTokensMap map[string]string
+	apiKey                 string
 }
 
 func NewEthplorerBalanceService(smartContractTokensMap map[string]string) *ethplorerBalanceService {
-	return &ethplorerBalanceService{smartContractTokensMap: smartContractTokensMap}
+	return &ethplorerBalanceService{smartContractTokensMap: smartContractTokensMap, apiKey: "freekey"}
 }
 
 func (me *ethplorerBalanceService) GetBalancesForAddress(ctx context.Context, address string) (*sync.Map, error) {
-	resp, err := http.Get("http://api.ethplorer.io/getAddressInfo/" + address + "?apiKey=freekey")
+	resp, err := http.Get("http://api.ethplorer.io/getAddressInfo/" + address + "?apiKey=" + me.apiKey)
 	if err != nil {
 		return nil, err
 	}
